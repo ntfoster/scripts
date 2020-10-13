@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import csv
+from pathlib import Path
 
 input = "lab.sla" # TODO: Parameterise
 background_toc_frame = 'TOC_Background'
@@ -8,7 +9,7 @@ header_style = 'HEADER Level 1'
 
 tree = ET.parse(input)
 root = tree.getroot()
-output = input+".toc.csv" # TODO: strip extension
+output = Path(input).stem+".toc.csv" 
 
 # print(root.attrib)
 
@@ -31,7 +32,7 @@ def parse_headers(): # scans for 'HEADER Level 1' text to build bookmarks
     header_labels = []
     # for object in root.findall("./DOCUMENT/PAGEOBJECT/StoryText/DefaultStyle[@PARENT='HEADER Level 1']"):
     for element in root.findall(f"./DOCUMENT/PAGEOBJECT[@PSTYLE='{header_style}']"):
-        page = int(element.get("OwnPage"))+1
+        page = int(element.get("OwnPage"))+1 # Scribus interal page numbers start at 0, so are 1 less than 'real' page numbers 
         for storytext in element:
             for child in storytext:
                 if child.tag == "MARK":
