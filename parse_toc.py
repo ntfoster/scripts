@@ -2,6 +2,10 @@ import xml.etree.ElementTree as ET
 import csv
 
 input = "lab.sla" # TODO: Parameterise
+background_toc_frame = 'TOC_Background'
+rules_toc_frame = 'TOC_Rules'
+header_style = 'HEADER Level 1'
+
 tree = ET.parse(input)
 root = tree.getroot()
 output = input+".toc.csv" # TODO: strip extension
@@ -10,7 +14,7 @@ output = input+".toc.csv" # TODO: strip extension
 
 def parse_toc(): # scans text in the TOC_Background frame to build bookmarks
     toc_labels = []
-    for element in root.findall("./DOCUMENT/PAGEOBJECT[@ANNAME='TOC_Background']/StoryText"):
+    for element in root.findall(f"./DOCUMENT/PAGEOBJECT[@ANNAME='{background_toc_frame}']/StoryText"):
         for child in element:
             if child.tag == "MARK":
                 label = child.get("label")
@@ -26,7 +30,7 @@ def parse_toc(): # scans text in the TOC_Background frame to build bookmarks
 def parse_headers(): # scans for 'HEADER Level 1' text to build bookmarks
     header_labels = []
     # for object in root.findall("./DOCUMENT/PAGEOBJECT/StoryText/DefaultStyle[@PARENT='HEADER Level 1']"):
-    for element in root.findall("./DOCUMENT/PAGEOBJECT[@PSTYLE='HEADER Level 1']"):
+    for element in root.findall(f"./DOCUMENT/PAGEOBJECT[@PSTYLE='{header_style}']"):
         page = int(element.get("OwnPage"))+1
         for storytext in element:
             for child in storytext:
