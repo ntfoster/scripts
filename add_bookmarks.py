@@ -9,8 +9,14 @@ parser.add_argument("marks", help="File containing list of pdfmarks")
 parser.add_argument("--output", "-o", help="Output file")
 args = parser.parse_args()
 
+ghostscript_path = "gswin64c" # TODO: Automatically handle Windows/macOS/Linux defaults?
+
 def add_bookmarks(original,pdfmarks,output):
-    cmd = "gswin64c -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=%s %s %s" % (output, original, pdfmarks)
+
+    ghostscript_arguments = "-dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=%s %s %s" % (output, original, pdfmarks)
+
+    # cmd = "gswin64c -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=%s %s %s" % (output, original, pdfmarks)
+    cmd = f"{ghostscript_path} {ghostscript_arguments}"
     # print("Running command: %s" % (cmd))
     subprocess.run(cmd, capture_output=True)
 
