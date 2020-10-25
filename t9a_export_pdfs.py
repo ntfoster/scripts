@@ -113,18 +113,18 @@ def export_pdf(filename,output):
         pdf = scribus.PDFfile()
         output_file = os.path.splitext(filename)[0]+'_screen.pdf'
         pdf.file = output_file
-        # pdf.quality = 0 # High
-        # pdf.fontEmbedding = 0
-        # pdf.version = 14
-        # pdf.embedPDF = True
-        # pdf.downsample = 300
-        # pdf.resolution = 300
-        # pdf.compress = True
-        # pdf.compressmtd = 0 # Automatic compression
-        # pdf.outdst = 0 # screen
-        # pdf.displayBookmarks = True
-        # pdf.useDocBleeds = False
-        # pdf.cropMarks = False
+        pdf.quality = 1 # High
+        pdf.fontEmbedding = 0
+        pdf.version = 14
+        pdf.embedPDF = True
+        pdf.downsample = 300
+        pdf.resolution = 300
+        pdf.compress = True
+        pdf.compressmtd = 0 # Automatic compression
+        pdf.outdst = 0 # screen
+        pdf.displayBookmarks = True
+        pdf.useDocBleeds = False
+        pdf.cropMarks = False
         scribus.statusMessage("Exporting %i of %i: %s" % (progress_step, num_files, output_file))
         pdf.save()
 
@@ -289,7 +289,7 @@ def main_wrapper(argv):
     the main() function. Once everything finishes it cleans up after the main()
     function, making sure everything is sane before the script terminates."""
     try:
-        scribus.setRedraw(False)
+        # scribus.setRedraw(False) # setRedraw(False) causes shadows not to export properly, somehow.
         scribus.statusMessage("Running script...")
         scribus.progressReset()
         main(argv)
