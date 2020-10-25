@@ -110,14 +110,14 @@ def export_pdf(filename,quality):
         pdf = scribus.PDFfile()
         # output_file = os.path.splitext(filename)[0]+'_high.pdf'
         pdf.file = filename
-        pdf.quality = 1 # High
+        pdf.quality = 1 # 0= Max, 1 = High, 2 = Medium, 3 = Low, 4 = Minimum
         pdf.fontEmbedding = 0
         pdf.version = 14
         pdf.embedPDF = True
         pdf.downsample = 300
         pdf.resolution = 300
         pdf.compress = True
-        pdf.compressmtd = 0 # Automatic compression
+        pdf.compressmtd = 1 # 0 = Automatic; 1 = JPEG
         pdf.outdst = 0 # screen
         pdf.displayBookmarks = True
         pdf.useDocBleeds = False
@@ -128,14 +128,14 @@ def export_pdf(filename,quality):
         pdf = scribus.PDFfile()
         # output_file = os.path.splitext(filename)[0]+'_low.pdf'
         pdf.file = filename
-        pdf.quality = 2 # High
+        pdf.quality = 3 # 0= Max, 1 = High, 2 = Medium, 3 = Low, 4 = Minimum
         pdf.fontEmbedding = 0
         pdf.version = 14
         pdf.embedPDF = True
         pdf.downsample = 100
         pdf.resolution = 100
         pdf.compress = True
-        pdf.compressmtd = 1 # JPEG compression
+        pdf.compressmtd = 1  # 0 = Automatic; 1 = JPEG
         pdf.outdst = 0 # screen
         pdf.displayBookmarks = True
         pdf.useDocBleeds = False
