@@ -3,14 +3,16 @@
 
 import subprocess
 import argparse
-from pathlib import Path
+# from pathlib import Path
 import os
 
+# TODO: switch for keeping original files or not
 description = "This program takes an input PDF file and a text file containing a list of pdktk info marks, and calls pdftk to create a new PDF with the appropriate bookmarks."
 parser = argparse.ArgumentParser(description=description)
 parser.add_argument("input", help="Original PDF")
 parser.add_argument("marks", help="File containing list of pdftk info")
 parser.add_argument("--output", "-o", help="Output file")
+
 args = parser.parse_args()
 
 PDFTK_PATH = "pdftk" # TODO: Automatically handle Windows/macOS/Linux defaults?
@@ -29,9 +31,8 @@ pdfmarks = args.marks
 if args.output:
     output = args.output
 else:
-    output = str(Path(input).parent) + '\\' + Path(input).stem+'_bookmarked.pdf'
-    # output = input+'_bookmarked.pdf'
+    output = os.path.splitext(input)[0]+'_bookmarked.pdf'
 
 add_bookmarks(input, pdfmarks, output)
-# os.remove(input)
-# os.rename(output,input)
+os.rename(input,os.path.splitext(input)[0]+'_original.pdf')
+os.rename(output,input)
