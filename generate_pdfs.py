@@ -90,40 +90,8 @@ def process_pdf(input): # parse TOC and create CSV
 
 
     if "print" in args.quality:
-        # no need for bookmarks
+        # no need for bookmarks in print version
         pass
-
-    # if "norules" in args.formats:
-    #     cmd = f'python ./parse_toc.py --norules "{input}"'
-    #     now = datetime.now()
-    #     time = now.strftime("%H:%M:%S")
-    #     print(f"{time}: Running: {cmd}")
-    #     subprocess.call(cmd, shell=True)
-
-    # if "full" in args.formats:
-    #     cmd = f'python ./parse_toc.py "{input}"'
-    #     now = datetime.now()
-    #     time = now.strftime("%H:%M:%S")
-    #     print(f"{time}: Running: {cmd}")
-    #     subprocess.call(cmd, shell=True)
-
-    # # create pdfmarks file from CSV
-    # csvfile = Path(input).stem+"_toc.csv"
-    # cmd = f'python ./create_pdftk_marks.py "{csvfile}"'
-    # now = datetime.now()
-    # time = now.strftime("%H:%M:%S")
-    # print(f"{time}: Running: {cmd}")
-    # subprocess.call(cmd, shell=True)
-
-    # # call pdftk to add pdfmarks
-    # # original_pdf = Path(input).stem+"_high.pdf"
-    # original_pdf = os.path.splitext(input)[0]+'_full_high.pdf'
-    # pdfmarks = Path(input).stem+"_toc.pdftk_marks"
-    # cmd = f'python ./add_bookmarks.py "{original_pdf}" "{pdfmarks}"'
-    # now = datetime.now()
-    # time = now.strftime("%H:%M:%S")
-    # print(f"{time}: Running: {cmd}")
-    # subprocess.call(cmd, shell=True,stdout=subprocess.DEVNULL)
 
     # resample PDFs (even "high", as Scribus PDF file sizes are quite large)
     # for f in args.formats:
@@ -148,17 +116,6 @@ def move_pdfs(input, output_dir):
             filename = (os.path.splitext(input)[0])+f'_{f}_{q}.pdf'
             new_filename = output_dir + '\\'+ os.path.basename(filename)
             shutil.move(filename, new_filename)
-    # os.remove(input)
-
-    # output_file = os.path.splitext(input)[0]+'_high.pdf'
-    # if os.path.isfile(output_file):
-    #     shutil.copy(output_file, output_dir)
-    # output_file = os.path.splitext(input)[0]+'_low.pdf'
-    # if os.path.isfile(output_file):
-    #     shutil.copy(output_file, output_dir)
-    # output_file = os.path.splitext(input)[0]+'_print.pdf'
-    # if os.path.isfile(output_file):
-    #     shutil.copy(output_file, output_dir)
 
 def create_nopoints(input):
     cmd = f'python ./replace_pdf.py "{input}" -o' # create a '_nopoints.sla' file
@@ -168,34 +125,13 @@ def create_nopoints(input):
     subprocess.call(cmd, shell=True)
 
 for f in args.file:
-    # job_files = []
-    # filename = f.name
     job = f.name
     if not args.noexport:
-        generate_pdf(job) # TODO: parallelise; had an error during pdf creation
+        generate_pdf(job) # TODO: maybe parallelise
     if not args.noprocess:
         process_pdf(job)
     if args.dest:
         move_pdfs(f.name,args.dest)
-
-    # if "full" in args.formats:
-    #     job_file = os.path.splitext(filename)[0] + '.sla'
-    #     job_files.append(job_file)
-    # if "nopoints" in args.formats:
-    #     create_nopoints(filename)
-    #     job_file = os.path.splitext(filename)[0] + '_nopoints.sla'
-    #     job_files.append(job_file)
-    # # if "norules" in args.formats: # norules not yet implemented
-    # #     job_file = os.path.splitext(filename)[0] + '_norules.sla'
-    # #     job_files.append(job_file)
-
-    # for job in job_files:
-    #     if not args.noexport:
-    #         generate_pdf(job) # TODO: parallelise; had an error during pdf creation
-    #     if not args.noprocess:
-    #         process_pdf(job)
-    #     if args.dest:
-    #         move_pdfs(job,output_dir)
 
 # All done
 now = datetime.now()
