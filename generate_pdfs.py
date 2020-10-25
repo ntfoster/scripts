@@ -37,23 +37,10 @@ def run_command(cmd,output):
     else:
         subprocess.call(cmd, shell=True,stdout=subprocess.DEVNULL)
 
-def generate_pdf(input): # call Scribus to generate PDFs
-
-
-    # TODO: switch to quit
-    
-    output_args = ''
-    if "print" in args.quality:
-        output_args += 'print '
-    if "high" or "low" in args.quality:
-        output_args += 'screen ' # TODO: why is screen being passed to scribus when only print is passed here?
-
-    if args.formats:
-        format_args = ' '.join(args.formats)
-    else:
-        format_args = "full"
-
-    run_command(f'scribus "{input}" --console -py ./t9a_export_pdfs.py --quit --format {format_args} --output {output_args}',False)
+def generate_pdfs(input): # call Scribus to generate PDFs
+    format_args = ' '.join(args.formats)
+    quality_args = ' '.join(args.quality)
+    run_command(f'scribus "{input}" --console -py ./t9a_export_pdfs.py --quit --format {format_args} --quality {quality_args}',False)
 
 def process_pdf(input): # parse TOC and create CSV
 
@@ -127,7 +114,7 @@ def create_nopoints(input):
 for f in args.file:
     job = f.name
     if not args.noexport:
-        generate_pdf(job) # TODO: maybe parallelise
+        generate_pdfs(job) # TODO: maybe parallelise
     if not args.noprocess:
         process_pdf(job)
     if args.dest:
