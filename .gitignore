@@ -1,5 +1,6 @@
-*.txt
+.vscode/
+*_toc_pdftk.txt
 *.pdf
-*.csv
+*_toc.csv
 *.pdfmarks
 *.sla
