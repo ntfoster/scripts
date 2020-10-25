@@ -80,6 +80,17 @@ def process_pdf(input): # parse TOC and create CSV
         # no need for bookmarks in print version
         pass
 
+    # rename and move files
+    files = []
+    for f in args.formats:
+        for q in args.quality:
+            new_filename = os.path.splitext(input)[0]+f'_{f}_{q}.pdf'
+            files.append(new_filename)
+    file_list = '"{0}"'.format('" "'.join(files))
+    run_command(f"python ./rename_files.py {file_list}",True)
+    if args.dest:
+        pass # move file
+
     # resample PDFs (even "high", as Scribus PDF file sizes are quite large)
     # for f in args.formats:
     #     original_pdf = os.path.splitext(input)[0]+'_'+f+'_screen_bookmarked.pdf'
