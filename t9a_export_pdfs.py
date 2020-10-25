@@ -8,9 +8,9 @@ try:
     # Do so _after_ the 'import scribus' and only import the names you need, such
     # as commonly used constants.
     import scribus
-except ImportError,err:
-    print "This Python script is written for the Scribus scripting interface."
-    print "It can only be run from within Scribus."
+except ImportError as err:
+    print("This Python script is written for the Scribus scripting interface.")
+    print("It can only be run from within Scribus.")
     sys.exit(1)
 
 #########################
@@ -74,7 +74,7 @@ def create_norules():
         masters = scribus.masterPageNames()
         new_master = master
         for m in masters:
-            print m
+            print(m)
             if m.startswith('T0'):
                 new_master = m
         scribus.applyMasterPage(new_master,7)    
@@ -146,11 +146,6 @@ def export_pdf(filename,output):
     #     scribus.statusMessage("Exporting %i of %i: %s" % (progress_step, num_files, output_file))
     #     pdf3.save()
 
-def get_rules_pages(): # returns a tuple with start and end page numbers for rules section
-    rules_start = scribus.getAllText("rules_start")
-    rules_end = scribus.getAllText("rules_end")
-    return (int(rules_start),int(rules_end))
-
 def replace_pdf(): # replaces linked rules pdf with '_nopoints' version
     pdf_pattern = r".+\.(pdf)"
     pdf_re = re.compile(pdf_pattern)
@@ -167,7 +162,6 @@ def replace_pdf(): # replaces linked rules pdf with '_nopoints' version
                 if pdf_re.match(file):
                     new_file = os.path.splitext(file)[0]+'_nopoints.pdf'
                     if os.path.isfile(new_file):
-                        new_filename = new_file
                         scribus.loadImage(new_file,item[0])
                         pages.append(i)
 
@@ -179,8 +173,8 @@ def verify_output(output):
 
 
 def verify_format(format):
-    if output in OUTPUT_TYPES:
-        return output
+    if format in FORMAT_TYPES:
+        return format
     else:
         raise argparse.ArgumentTypeError("%s is not a valid format. Valid formats are: %s" % (format, str(FORMAT_TYPES))) 
 
@@ -287,10 +281,6 @@ def main(argv):
     # scribus.statusMessage("Exporting %s" % output_file)
     # pdf2.save()
 
-
-
-    if args.quit:
-        print "quitting"
 
 def main_wrapper(argv):
     global interactive
