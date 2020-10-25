@@ -24,7 +24,7 @@ import re
 import datetime
 import shutil
 
-OUTPUT_TYPES = ["high","low","print"]
+QUALITY_TYPES = ["high","low","print"]
 FORMAT_TYPES = ["full","nopoints","norules"]
 
 # globals
@@ -102,17 +102,12 @@ def create_norules():
     scribus.saveDocAs(new_filename)
     # shutil.copy(filename,backup_filename)
 
-def export_pdf(filename,output):
-    global progress_step
-    global no_export
-    if no_export:
-        return
-    if output == "screen":
+def export_pdf(filename,quality):
+    if quality == "high":
         # screen 300 dpi settings
-        # scribus.readPDFOptions("screen_pdfoptions.xml")
         pdf = scribus.PDFfile()
-        output_file = os.path.splitext(filename)[0]+'_screen.pdf'
-        pdf.file = output_file
+        # output_file = os.path.splitext(filename)[0]+'_high.pdf'
+        pdf.file = filename
         pdf.quality = 1 # High
         pdf.fontEmbedding = 0
         pdf.version = 14
@@ -125,25 +120,41 @@ def export_pdf(filename,output):
         pdf.displayBookmarks = True
         pdf.useDocBleeds = False
         pdf.cropMarks = False
-        scribus.statusMessage("Exporting %i of %i: %s" % (progress_step, num_files, output_file))
+        pdf.save()
+    if quality == "low":
+        # screen 100 dpi settings
+        pdf = scribus.PDFfile()
+        # output_file = os.path.splitext(filename)[0]+'_low.pdf'
+        pdf.file = filename
+        pdf.quality = 2 # High
+        pdf.fontEmbedding = 0
+        pdf.version = 14
+        pdf.embedPDF = True
+        pdf.downsample = 100
+        pdf.resolution = 100
+        pdf.compress = True
+        pdf.compressmtd = 1 # JPEG compression
+        pdf.outdst = 0 # screen
+        pdf.displayBookmarks = True
+        pdf.useDocBleeds = False
+        pdf.cropMarks = False
         pdf.save()
 
-    # if output == "print":
+    # if quality == "print":
     #     # print 300 dpi
     #     pdf3 = scribus.PDFfile()
-    #     output_file = os.path.splitext(filename)[0]+'_print.pdf'
-    #     pdf3.file = output_file
-    #     pdf3.quality = 1 # High
+    #     pdf3.file = filename
+    #     pdf3.quality = 0 # Max
     #     pdf3.fontEmbedding = 0
     #     pdf3.version = 14
     #     pdf3.embedPDF = True
     #     pdf3.downsample = 300
+    #     pdf.resolution = 300
     #     pdf3.compress = True
     #     pdf3.compressmtd = 0 # Automatic compression
     #     pdf3.outdst = 1 # print
     #     pdf3.useDocBleeds = True
     #     pdf3.cropMarks = True
-    #     scribus.statusMessage("Exporting %i of %i: %s" % (progress_step, num_files, output_file))
     #     pdf3.save()
 
 def replace_pdf(): # replaces linked rules pdf with '_nopoints' version
@@ -165,11 +176,11 @@ def replace_pdf(): # replaces linked rules pdf with '_nopoints' version
                         scribus.loadImage(new_file,item[0])
                         pages.append(i)
 
-def verify_output(output):
-    if output in OUTPUT_TYPES:
-        return output
+def verify_quality(quality):
+    if quality in QUALITY_TYPES:
+        return quality
     else:
-        raise argparse.ArgumentTypeError("%s is not a valid output. Valid outputs are: %s" % (output, str(OUTPUT_TYPES)))
+        raise argparse.ArgumentTypeError("%s is not a valid quality. Valid qualitys are: %s" % (quality, str(QUALITY_TYPES)))
 
 
 def verify_format(format):
@@ -188,7 +199,7 @@ def main(argv):
     does here. You should generally put documentation strings ("docstrings")
     on all your Python functions."""
     if len(argv)==1: # if called from within Scribus or with no arguments
-        new_args = scribus.valueDialog('Set Arguments', 'Set Arguments:\nOptions for --output: screen, print\nOptions for --format: full, nopoints, norules', '--output screen --formats full  --noexport')
+        new_args = scribus.valueDialog('Set Arguments', 'Set Arguments:\nOptions for --quality: screen, print\nOptions for --format: full, nopoints, norules', '--quality high low --formats full')
         if new_args == '':
             scribus.messageBox("Script Cancelled","Script was cancelled or no arguments were provided")
             return
@@ -200,7 +211,7 @@ def main(argv):
         arg_list = argv[1:]
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', nargs='+', help='Which output types do you want? Available: "screen" (RGB) and "print" (CMYK). Defaults to screen only.', default="screen")
+    parser.add_argument('--quality', nargs='+', help='Which quality types do you want? Available: "high", "low" (RGB) and "print" (CMYK). Defaults to "high".', default="high")
     parser.add_argument('--formats', '-f', nargs='+', help='Options: "full", "nopoints", and "norules". Default is "full".', default="full")
     parser.add_argument('--quit', help='Quit Scribus after export (e.g. when called as part of external script)', action="store_true")
     parser.add_argument('--noexport', help="Don't export PDFs, just make the changes to the file and save", action="store_true")
@@ -210,37 +221,38 @@ def main(argv):
     except argparse.ArgumentTypeError as e:
         raise e
 
-    # filepath = getDocName()
-    # filename = os.path.basename(filepath)
-    # output_file =  os.path.splitext(filepath)[0]+'.pdf'
     if args.noexport:
         no_export = True
     if args.quit:
         interactive = False
 
     filename = scribus.getDocName()
-    
-    scribus.setLayerVisible("Rules", True)
-    scribus.setLayerBlendmode("Rules", 3) # Multiply for Rules Layer
+
+    scribus.setLayerBlendmode("Rules", 3) # Set Multiply for Rules Layer, as this is often set to normal for performance reasons
 
     # TODO: Count steps and set progress bar accordingly
-    num_files = len(args.formats)*len(args.output)
+    num_files = len(args.formats)*len(args.quality)
     scribus.progressTotal(num_files)
     if "full" in args.formats:
-        output_file = os.path.splitext(filename)[0]+'_full'
-        for o in args.output:
+        for o in args.quality:
+            output_file = os.path.splitext(filename)[0]+'_full_'+o+'.pdf'
             progress_step += 1
+            scribus.statusMessage("Exporting %i of %i: %s" % (progress_step, num_files, output_file))
             export_pdf(output_file,o)
             scribus.progressSet(progress_step)
     if "nopoints" in args.formats:
         replace_pdf()
+        
+        # TODO: function to paramaterise and set version string
         version = scribus.getAllText("version_name")
         version = version.replace('Rules and Points version 2020', 'Rules Only version 2020')
         scribus.setText(version,"version_name")
         scribus.setTextAlignment(scribus.ALIGN_CENTERED, "version_name")
-        output_file = os.path.splitext(filename)[0]+'_nopoints'
-        for o in args.output:
+
+        for o in args.quality:
+            output_file = os.path.splitext(filename)[0]+'_nopoints_'+o+'.pdf'
             progress_step += 1
+            scribus.statusMessage("Exporting %i of %i: %s" % (progress_step, num_files, output_file))
             export_pdf(output_file,o)
             scribus.progressSet(progress_step)
         new_filename = output_file+'.sla'
@@ -254,33 +266,14 @@ def main(argv):
         # remove rules
         scribus.statusMessage("Creating norules version")
         create_norules()
-        output_file = os.path.splitext(filename)[0]+'_norules'
-        for o in args.output:
+        
+        for o in args.quality:
+            output_file = os.path.splitext(filename)[0]+'_norules_'+o+'.pdf'
             progress_step += 1
+            scribus.statusMessage("Exporting %i of %i: %s" % (progress_step, num_files, output_file))
             export_pdf(output_file,o)
             scribus.progressSet(progress_step)
  
-
-
-    # Unused settings for "low" quality screen PDF. Moved responsibility for low quality PDF to external script.
-    # screen 96 dpi settings
-    # pdf2 = scribus.PDFfile()
-    # output_file = os.path.splitext(filename)[0]+'_low.pdf'
-    # pdf2.file = output_file
-    # pdf2.quality = 1 # High
-    # pdf2.fontEmbedding = 0
-    # pdf2.version = 14
-    # pdf2.embedPDF = True
-    # pdf2.downsample = 96
-    # pdf2.compress = True
-    # pdf2.compressmtd = 0 # Automatic
-    # pdf2.outdst = 0 # screen
-    # pdf2.displayBookmarks = True
-    # pdf3.useDocBleeds = True
-    # pdf3.cropMarks = True
-    # scribus.statusMessage("Exporting %s" % output_file)
-    # pdf2.save()
-
 
 def main_wrapper(argv):
     global interactive
