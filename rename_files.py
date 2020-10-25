@@ -12,12 +12,7 @@ if args.version:
 else:
     version = "2020"
 
-
 files = args.file
-
-# files = ["d:\9th age\Scribus LABs\LAB_WDG\T9A-FB_LAB_WDG_EN_v1_full_high.pdf"]
-
-
 
 target_filename = "t9a-fb_fab_print_wotdg_2-2_en.pdf"
 
@@ -40,7 +35,7 @@ for f in files:
         if quality == "low":
             quality = "online"
         # print(f"{result.group(1)} {result.group(2)} {result.group(3)} {result.group(4)}")
-        new_filename = f"t9a-fb_fab_{quality}_{army}_{format}_{version}_{lang}.pdf"
+        new_filename = f"t9a-fb_lab_{quality}_{army}_{format}_{version}_{lang}.pdf"
         new_filename = new_filename.replace("_wdg_", "_wotdg_")
         print(f'{f} => {new_filename}')
         # os.rename(f,new_filename)
