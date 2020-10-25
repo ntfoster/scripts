@@ -21,7 +21,6 @@ def create_pdfmarks(input_filename):
             level = int(row["level"])
             title = row["text"]
             page = row["page"]
-            children = int(row["children"])
             
             of.write('BookmarkBegin\n')
             of.write(f'BookmarkTitle: {title}\n')
