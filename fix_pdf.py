@@ -29,6 +29,7 @@ def fix_pdf_scale():
 
 def set_rules_pdf_pos(x,y):
 
+    # convert mm into points
     x_move = x * decimal.Decimal('2.83464566930343')
     y_move = y * decimal.Decimal('2.83464566930343')
      
