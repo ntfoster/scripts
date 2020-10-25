@@ -34,6 +34,7 @@ progress_step = 0
 interactive = True
 no_export = False
 
+# TODO: do a preflight check to make sure all necessary text frames etc. are set up correctly.
 
 def get_rules_pages():
     rules_start = scribus.getAllText("rules_start")
@@ -52,9 +53,10 @@ def create_norules():
     backup_filename = os.path.splitext(filename)[0]+'_backup_'+timestamp+'.sla'
     shutil.copy(filename,backup_filename) # don't use scribus built-in savceDocAs(), otherwise it will switch focus to the new file, which we don't want.
 
-    # set version string - currently handled by export script
+    # set version string
     version = scribus.getAllText("version_name")
     version = version.replace('Rules and Points version 2020', 'Background Book')
+    version = version.replace('Rules Only version 2020', 'Background Book')
     scribus.setText(version,"version_name")
     scribus.setTextAlignment(scribus.ALIGN_CENTERED, "version_name")
 
@@ -140,22 +142,22 @@ def export_pdf(filename,quality):
         pdf.cropMarks = False
         pdf.save()
 
-    # if quality == "print":
-    #     # print 300 dpi
-    #     pdf3 = scribus.PDFfile()
-    #     pdf3.file = filename
-    #     pdf3.quality = 0 # Max
-    #     pdf3.fontEmbedding = 0
-    #     pdf3.version = 14
-    #     pdf3.embedPDF = True
-    #     pdf3.downsample = 300
-    #     pdf.resolution = 300
-    #     pdf3.compress = True
-    #     pdf3.compressmtd = 0 # Automatic compression
-    #     pdf3.outdst = 1 # print
-    #     pdf3.useDocBleeds = True
-    #     pdf3.cropMarks = True
-    #     pdf3.save()
+    if quality == "print":
+        # print 300 dpi
+        pdf3 = scribus.PDFfile()
+        pdf3.file = filename
+        pdf3.quality = 0 # Max
+        pdf3.fontEmbedding = 0
+        pdf3.version = 14
+        pdf3.embedPDF = True
+        pdf3.downsample = 300
+        pdf.resolution = 300
+        pdf3.compress = True
+        pdf3.compressmtd = 0 # Automatic compression
+        pdf3.outdst = 1 # print
+        pdf3.useDocBleeds = True
+        pdf3.cropMarks = True
+        pdf3.save()
 
 def replace_pdf(): # replaces linked rules pdf with '_nopoints' version
     pdf_pattern = r".+\.(pdf)"
