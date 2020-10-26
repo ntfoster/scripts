@@ -32,10 +32,8 @@ def run_command(cmd,output):
     now = datetime.now()
     time = now.strftime("%H:%M:%S")
     print(f"{time}: Running: {cmd}")
-    if output==True:
-        subprocess.call(cmd, shell=True)
-    else:
-        subprocess.call(cmd, shell=True,stdout=subprocess.DEVNULL)
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    return result
 
 def generate_pdfs(input): # call Scribus to generate PDFs
     format_args = ' '.join(args.formats)
@@ -45,7 +43,7 @@ def generate_pdfs(input): # call Scribus to generate PDFs
 def process_pdf(input): # parse TOC and create CSV
 
     # TODO: save intermediate files in .sla's directory, not the script's directory, and delete if successfull.
-
+    
     if "high" or "low" in args.quality:
         if "full" or "nopoints" in args.formats:
             # parse_toc
@@ -87,10 +85,8 @@ def process_pdf(input): # parse TOC and create CSV
             new_filename = os.path.splitext(input)[0]+f'_{f}_{q}.pdf'
             files.append(new_filename)
     file_list = '"{0}"'.format('" "'.join(files))
-    run_command(f"python ./rename_files.py {file_list}",True)
-    if args.dest:
-        pass # move file
-
+    result = run_command(f"python ./rename_files.py --keep {file_list}",True)
+    return result
     # resample PDFs (even "high", as Scribus PDF file sizes are quite large)
     # for f in args.formats:
     #     original_pdf = os.path.splitext(input)[0]+'_'+f+'_screen_bookmarked.pdf'
@@ -106,30 +102,27 @@ def process_pdf(input): # parse TOC and create CSV
     #         shutil.copy(original_pdf,new_pdf)
     #     os.remove(original_pdf) # remove _bookmarked.pdf file
 
-def move_pdfs(input, output_dir):
-    if args.noprocess:
-        args.quality = ["screen"]
-    for f in args.formats:
-        for q in args.quality:
-            filename = (os.path.splitext(input)[0])+f'_{f}_{q}.pdf'
-            new_filename = output_dir + '\\'+ os.path.basename(filename)
-            shutil.move(filename, new_filename)
+def move_pdfs(files, output_dir):
+    # filename = (os.path.splitext(input)[0])+f'_{f}_{q}.pdf'
+    # new_filename = output_dir + '\\'+ os.path.basename(filename)
+    # shutil.move(filename, new_filename)
+    for f in files:
+        shutil.copy(f,output_dir)
 
 def create_nopoints(input):
     cmd = f'python ./replace_pdf.py "{input}" -o' # create a '_nopoints.sla' file
-    now = datetime.now()
-    time = now.strftime("%H:%M:%S")
-    print(f"{time}: Running: {cmd}")
-    subprocess.call(cmd, shell=True)
+    run_command(cmd,False)
 
 for f in args.file:
     job = f.name
     if not args.noexport:
         generate_pdfs(job) # TODO: maybe parallelise
     if not args.noprocess:
-        process_pdf(job)
-    if args.dest:
-        move_pdfs(f.name,args.dest)
+        new_files = process_pdf(job).stdout.splitlines()
+        print("Files created:")
+        print(new_files)
+        if args.dest:
+            move_pdfs(new_files,args.dest)
 
 # All done
 now = datetime.now()
