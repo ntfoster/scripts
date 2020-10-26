@@ -8,6 +8,7 @@ import shutil
 parser = argparse.ArgumentParser()
 parser.add_argument("files", type=argparse.FileType('r'), nargs='+', help="file to be renamed")
 parser.add_argument('--version','-v', help="rules version")
+parser.add_argument("--keep", action="store_true", help="Do not delete original files", default=False)
 args = parser.parse_args()
 
 if args.version:
@@ -39,6 +40,8 @@ for f in files:
         else:
             new_filename = f"t9a-fb_lab_{quality}_{army}_{format}_{version}_{lang}.pdf"
         new_filename = os.path.dirname(f.name) + '\\' + new_filename.replace("_wdg_", "_wotdg_") # TODO: split off into separate function with dictionary of replacements
-    print(f'{f.name} => {new_filename}')
+    # print(f'{f.name} => {new_filename}')
+    print(new_filename)
     shutil.copy(f.name,new_filename)
-    os.remove(f.name)
+    if not args.keep:
+        os.remove(f.name)
