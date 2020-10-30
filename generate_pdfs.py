@@ -9,6 +9,9 @@ import shutil
 ### Constants ####
 HIGH_DPI = 300
 LOW_DPI = 100
+
+QUALITY_TYPES = ["high","low","print"]
+FORMAT_TYPES = ["full","nopoints","norules"]
 ##################
 
 def dir_path(path):
@@ -25,20 +28,36 @@ parser.add_argument('--noprocess', help='Do not process PDFs after exporting', a
 parser.add_argument('--formats', '-f', nargs='+', help='Options: "full", "nopoints", and "norules". Default is "full".', default="full")
 parser.add_argument('--quality', '-q', nargs='+', help='Which qualities of file do you want? Available: "high", "low", and "print". Defaults to "high" and "low"', default="high low")
 parser.add_argument('--dest','-d', help='destination directory',type=dir_path)
+parser.add_argument('--details', action="store_true", default=False)
 args = parser.parse_args()
 
-def run_command(cmd,output):
+# TODO: Validate format and quality options (using type= and functions) 
 
+def run_command(cmd,output,text=None,details=False):
+
+    # TODO: create version to log internal functions as well as external
+    # TODO: catch errors (return codes?)
+
+    if not details:
+        details = args.details
     now = datetime.now()
     time = now.strftime("%H:%M:%S")
-    print(f"{time}: Running: {cmd}")
+    status = f"{time}: "
+    if text:
+        status += f"{text}"
+        if details:
+            status += f" -- {cmd}"
+    else:
+        status += f" Running: {cmd}"
+    # print(f"{time}: Running: {cmd}")
+    print(status)
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     return result
 
 def generate_pdfs(input): # call Scribus to generate PDFs
     format_args = ' '.join(args.formats)
     quality_args = ' '.join(args.quality)
-    run_command(f'scribus "{input}" --console -py ./t9a_export_pdfs.py --quit --format {format_args} --quality {quality_args}',False)
+    run_command(f'scribus "{input}" --console -py ./t9a_export_pdfs.py --quit --format {format_args} --quality {quality_args}',False,f"Opening {os.path.basename(input)} in Scribus and exporting PDF(s)")
 
 def process_pdf(input): # parse TOC and create CSV
 
@@ -47,18 +66,18 @@ def process_pdf(input): # parse TOC and create CSV
     if "high" or "low" in args.quality:
         if "full" or "nopoints" in args.formats:
             # parse_toc
-            run_command(f'python ./parse_toc.py "{input}"',False)
+            run_command(f'python ./parse_toc.py "{input}"',False,f"Parsing file {os.path.basename(input)} to find bookmarks")
             # gen pdftk_marks
             csvfile = Path(input).stem+"_toc.csv"
-            run_command(f'python ./create_pdftk_marks.py "{csvfile}"',False)
+            run_command(f'python ./create_pdftk_marks.py "{csvfile}"',False,"Creating bookmarks file")
 
         if "norules" in args.formats:
             # parse_toc --norules
             file = os.path.splitext(input)[0]+'_norules.sla'
-            run_command(f'python ./parse_toc.py --norules "{file}"',False)
+            run_command(f'python ./parse_toc.py --norules "{file}"',False,f"Parsing file {os.path.basename(file)} to find bookmarks")
             # gen pdftk_marks
             csvfile = Path(input).stem+"_norules_toc.csv"
-            run_command(f'python ./create_pdftk_marks.py "{csvfile}"',False)
+            run_command(f'python ./create_pdftk_marks.py "{csvfile}"',False,"Creating bookmarks file")
 
         for f in args.formats:
             # add bookmarks
@@ -68,10 +87,10 @@ def process_pdf(input): # parse TOC and create CSV
                 pdfmarks = Path(input).stem+"_toc_pdftk.txt"
             if "high" in args.quality:
                 original_pdf = os.path.splitext(input)[0]+'_'+f+'_high.pdf'
-                run_command(f'python ./add_bookmarks.py "{original_pdf}" "{pdfmarks}"',False)
+                run_command(f'python ./add_bookmarks.py "{original_pdf}" "{pdfmarks}"',False,f"Adding bookmarks to {os.path.basename(original_pdf)}")
             if "low" in args.quality:
                 original_pdf = os.path.splitext(input)[0]+'_'+f+'_low.pdf'
-                run_command(f'python ./add_bookmarks.py "{original_pdf}" "{pdfmarks}"',False)
+                run_command(f'python ./add_bookmarks.py "{original_pdf}" "{pdfmarks}"',False,f"Adding bookmarks to {os.path.basename(original_pdf)}")
 
 
     if "print" in args.quality:
@@ -85,7 +104,8 @@ def process_pdf(input): # parse TOC and create CSV
             new_filename = os.path.splitext(input)[0]+f'_{f}_{q}.pdf'
             files.append(new_filename)
     file_list = '"{0}"'.format('" "'.join(files))
-    result = run_command(f"python ./rename_files.py --keep {file_list}",True)
+    result = run_command(f"python ./rename_files.py --keep {file_list}",True,"Renaming files")
+    print(result)
     return result
     # resample PDFs (even "high", as Scribus PDF file sizes are quite large)
     # for f in args.formats:
@@ -107,11 +127,12 @@ def move_pdfs(files, output_dir):
     # new_filename = output_dir + '\\'+ os.path.basename(filename)
     # shutil.move(filename, new_filename)
     for f in files:
+        # print(f"Moving {f}")
         shutil.copy(f,output_dir)
 
 def create_nopoints(input):
     cmd = f'python ./replace_pdf.py "{input}" -o' # create a '_nopoints.sla' file
-    run_command(cmd,False)
+    run_command(cmd,False,"Creating nopoints version of file")
 
 for f in args.file:
     job = f.name
@@ -119,12 +140,13 @@ for f in args.file:
         generate_pdfs(job) # TODO: maybe parallelise
     if not args.noprocess:
         new_files = process_pdf(job).stdout.splitlines()
-        print("Files created:")
-        print(new_files)
         if args.dest:
+            now = datetime.now()
+            time = now.strftime("%H:%M:%S")
+            print(f"{time}: Moving files to {args.dest}")
             move_pdfs(new_files,args.dest)
 
 # All done
 now = datetime.now()
 time = now.strftime("%H:%M:%S")
-print(f"{time}: all done!")
+print(f"{time}: Completed")
