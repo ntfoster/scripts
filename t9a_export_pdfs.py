@@ -110,7 +110,7 @@ def export_pdf(filename,quality):
         pdf = scribus.PDFfile()
         # output_file = os.path.splitext(filename)[0]+'_high.pdf'
         pdf.file = filename
-        pdf.quality = 1 # 0= Max, 1 = High, 2 = Medium, 3 = Low, 4 = Minimum
+        pdf.quality = 0 # 0= Max, 1 = High, 2 = Medium, 3 = Low, 4 = Minimum
         pdf.fontEmbedding = 0
         pdf.version = 14
         pdf.embedPDF = True
@@ -144,20 +144,20 @@ def export_pdf(filename,quality):
 
     if quality == "print":
         # print 300 dpi
-        pdf3 = scribus.PDFfile()
-        pdf3.file = filename
-        pdf3.quality = 0 # Max
-        pdf3.fontEmbedding = 0
-        pdf3.version = 14
-        pdf3.embedPDF = True
-        pdf3.downsample = 300
+        pdf = scribus.PDFfile()
+        pdf.file = filename
+        pdf.quality = 0 # Max
+        pdf.fontEmbedding = 0
+        pdf.version = 14
+        pdf.embedPDF = True
+        pdf.downsample = 300
         pdf.resolution = 300
-        pdf3.compress = True
-        pdf3.compressmtd = 0 # Automatic compression
-        pdf3.outdst = 1 # print
-        pdf3.useDocBleeds = True
-        pdf3.cropMarks = True
-        pdf3.save()
+        pdf.compress = True
+        pdf.compressmtd = 0 # Automatic compression
+        pdf.outdst = 1 # print
+        pdf.useDocBleeds = True
+        pdf.cropMarks = True
+        pdf.save()
 
 def replace_pdf(): # replaces linked rules pdf with '_nopoints' version
     pdf_pattern = r".+\.(pdf)"
