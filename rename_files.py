@@ -30,10 +30,12 @@ for f in files:
         lang = result.group(2)
         format = result.group(3)
         quality = result.group(4)
-        if quality == "high":
-            quality = "print"
+        if quality =="print":
+            quality = "press"
         if quality == "low":
             quality = "online"
+        if quality == "high":
+            quality = "print"
         if format == "norules":
             format = "background"
             new_filename = f"t9a-fb_lab_{quality}_{army}_{format}_{lang}.pdf" # no version string needed for background book
